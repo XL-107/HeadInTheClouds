@@ -1,35 +1,48 @@
-document.getElementById('addBtn').addEventListener('click', async () => {
-  const domain = document.getElementById('domainInput').value.trim();
-  if (!domain) return;
+const input = document.getElementById("domainInput");
+const addBtn = document.getElementById("addBtn");
+const list = document.getElementById("ruleList");
 
-  chrome.storage.local.get({ blockedDomains: [] }, (data) => {
-    const updatedDomains = [...new Set([...data.blockedDomains, domain])];
-    chrome.storage.local.set({ blockedDomains: updatedDomains }, () => {
-      document.getElementById('domainInput').value = '';
-      updateDynamicRules(updatedDomains);
-      renderList(updatedDomains);
-    });
-  });
-});
+async function render() {
+  const { blacklist = [] } = await chrome.storage.local.get("blacklist");
+  list.innerHTML = "";
 
-function updateDynamicRules(domains) {
-  // Convert domains into declarativeNetRequest rules
-  const newRules = domains.map((domain, index) => ({
-    id: index + 1, // Unique ID per rule (must be integer > 0)
-    priority: 1,
-    action: { type: 'block' },
-    condition: {
-      urlFilter: `*://${domain}/*`,
-      resourceTypes: ['main_frame']
-    }
-  }));
+  blacklist.forEach(domain => {
+    const li = document.createElement("li");
+    li.textContent = domain + " ";
 
-  // Get existing dynamic rule IDs to remove them before adding updated ones
-  chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
-    const oldRuleIds = oldRules.map(r => r.id);
-    chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: oldRuleIds,
-      addRules: newRules
-    });
+    const btn = document.createElement("button");
+    btn.textContent = "Remove";
+    btn.onclick = async () => {
+      await chrome.storage.local.set({
+        blacklist: blacklist.filter(d => d !== domain)
+      });
+      render();
+    };
+
+    li.append(btn);
+    list.append(li);
   });
 }
+
+addBtn.onclick = async () => {
+  const domain = input.value.trim().toLowerCase()
+    .replace(/^https?:\/\//, "")  // strip protocol
+    .replace(/\/.*$/, "");        // strip path
+
+  if (!domain) return;
+
+  const { blacklist = [] } = await chrome.storage.local.get("blacklist");
+  if (!blacklist.includes(domain)) {
+    await chrome.storage.local.set({ blacklist: [...blacklist, domain] });
+  }
+
+  input.value = "";
+  render();
+};
+
+// Allow pressing Enter to add
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") addBtn.click();
+});
+
+render();

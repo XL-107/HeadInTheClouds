@@ -3,31 +3,16 @@
   "description": "An extension that blocks access to prohibited sites.",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": [
-    "declarativeNetRequest",
-    "storage"
-  ],
-  "host_permissions": [
-    "*://reddit.com/*",
-    "*://*.reddit.com/*",
-    "*://youtube.com/*",
-    "*://*.youtube.com/*",
-    "<all_urls>"
-  ],
-  "declarative_net_request": {
-    "rule_resources": [
-      {
-        "id": "blocked_sites",
-        "enabled": true,
-        "path": "rules.json"
-      }
-    ]
-  },
+  "permissions": 
+    ["declarativeNetRequest",
+     "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
   "action": {
     "default_popup": "index.html",
     "default_icon": "icon.png"
   },
-  "background": {
-    "service_worker": "background.js"
-  }
+  "web_accessible_resources": [
+    { "resources": ["blocked.html"], "matches": ["<all_urls>"] }
+  ]
 }
