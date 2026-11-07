@@ -4,13 +4,15 @@
   "version": "1.0",
   "manifest_version": 3,
   "permissions": [
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "storage"
   ],
   "host_permissions": [
     "*://reddit.com/*",
     "*://*.reddit.com/*",
     "*://youtube.com/*",
-    "*://*.youtube.com/*"
+    "*://*.youtube.com/*",
+    "<all_urls>"
   ],
   "declarative_net_request": {
     "rule_resources": [
@@ -24,5 +26,8 @@
   "action": {
     "default_popup": "index.html",
     "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }
