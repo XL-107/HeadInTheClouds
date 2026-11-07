@@ -3,6 +3,24 @@
   "description": "A minimal extension that opens a popup saying Hello Extensions when you click its toolbar icon.",
   "version": "1.0",
   "manifest_version": 3,
+  "permissions": [
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://reddit.com/*",
+    "*://*.reddit.com/*",
+    "*://youtube.com/*",
+    "*://*.youtube.com/*"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "blocked_sites",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
   "action": {
     "default_popup": "hello.html",
     "default_icon": "hello_extensions.png"
