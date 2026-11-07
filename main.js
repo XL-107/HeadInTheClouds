@@ -1,6 +1,32 @@
 const input = document.getElementById("domainInput");
 const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("ruleList");
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+
+function activateTab(selectedTab) {
+  tabs.forEach(tab => {
+    const selected = tab === selectedTab;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
+  });
+}
+
+tabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateTab(tab));
+  tab.addEventListener("keydown", event => {
+    let nextIndex;
+    if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    else if (event.key === "ArrowLeft") nextIndex = (index + tabs.length - 1) % tabs.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = tabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    tabs[nextIndex].focus();
+    activateTab(tabs[nextIndex]);
+  });
+});
 
 async function render() {
   const { blacklist = [] } = await chrome.storage.local.get("blacklist");

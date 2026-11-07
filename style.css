@@ -41,7 +41,32 @@ input {
   cursor: pointer;
 }
 
-.toolbar button:hover {
+.toolbar button:hover,
+.toolbar button[aria-selected="true"] {
+  background: #10544f;
+}
+
+.tab-panel {
+  min-height: 160px;
+  padding-top: 10px;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
+#addBtn {
+  width: 100%;
+  padding: 7px;
+  border: 0;
+  border-radius: 4px;
+  background: #176b65;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+#addBtn:hover {
   background: #10544f;
 }
 

@@ -26,13 +26,18 @@
 
 <body>
   <h1>Head In The Clouds</h1>
-  <input type="text" id="domainInput" placeholder="e.g., example.com" />
-  <div class="toolbar" role="toolbar" aria-label="Rule controls">
-    <button id="addBtn" type="button">Permissions</button>
-    <button id="clearBtn" type="button">Overview</button>
-    <button id="toggleBtn" type="button">Other</button>
+  <div class="toolbar" role="tablist" aria-label="Popup sections">
+    <button id="permissionsTab" type="button" role="tab" aria-selected="true" aria-controls="permissionsPanel" tabindex="0">Permissions</button>
+    <button id="overviewTab" type="button" role="tab" aria-selected="false" aria-controls="overviewPanel" tabindex="-1">Overview</button>
+    <button id="otherTab" type="button" role="tab" aria-selected="false" aria-controls="otherPanel" tabindex="-1">Other</button>
   </div>
-  <ul id="ruleList"></ul>
+  <section id="permissionsPanel" class="tab-panel" role="tabpanel" aria-labelledby="permissionsTab">
+    <input type="text" id="domainInput" placeholder="e.g., example.com" />
+    <button id="addBtn" type="button">Add</button>
+    <ul id="ruleList"></ul>
+  </section>
+  <section id="overviewPanel" class="tab-panel" role="tabpanel" aria-labelledby="overviewTab" hidden></section>
+  <section id="otherPanel" class="tab-panel" role="tabpanel" aria-labelledby="otherTab" hidden></section>
   <script src="main.js"></script>
 </body>
 
