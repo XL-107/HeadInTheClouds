@@ -1,6 +1,6 @@
 {
-  "name": "Hello World extension",
-  "description": "A minimal extension that opens a popup saying Hello Extensions when you click its toolbar icon.",
+  "name": "InTheClouds",
+  "description": "An extension that blocks access to prohibited sites.",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": [
@@ -23,6 +23,6 @@
   },
   "action": {
     "default_popup": "hello.html",
-    "default_icon": "hello_extensions.png"
+    "default_icon": "icon.png"
   }
 }
