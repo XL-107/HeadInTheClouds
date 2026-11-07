@@ -46,8 +46,37 @@ input {
 }
 
 #ruleList {
-  max-height: 150px;
+  max-height: 180px;
   margin: 10px 0 0;
-  padding-left: 18px;
+  padding: 0 4px 0 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  list-style: none;
+  overscroll-behavior-y: contain;
+}
+
+#ruleList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid #c6d9d6;
+  overflow-wrap: anywhere;
+}
+
+#ruleList button {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid #9bb9b5;
+  border-radius: 4px;
+  background: #fff;
+  color: #17343a;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#ruleList button:hover {
+  background: #d7e9e6;
 }
