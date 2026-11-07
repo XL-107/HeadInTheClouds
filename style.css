@@ -1,0 +1,6 @@
+body {
+  width: 300px; /* Crucial: define a width for the popup */
+  font-family: Arial, sans-serif;
+  padding: 10px;
+  background-color: #2ae7f4;
+}
