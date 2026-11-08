@@ -3,6 +3,20 @@ const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("ruleList");
 const overviewPanel = document.getElementById("overviewPanel");
 const tabs = [...document.querySelectorAll('[role="tab"]')];
+const panels = [...document.querySelectorAll(".tab-panel")];
+
+function resizePopup() {
+  const activePanel = panels.find(panel => !panel.hidden);
+  if (!activePanel) return;
+
+  const bottomPadding = parseFloat(getComputedStyle(document.body).paddingBottom);
+  const height = Math.ceil(activePanel.getBoundingClientRect().bottom + bottomPadding);
+  document.documentElement.style.height = `${height}px`;
+  document.body.style.height = `${height}px`;
+}
+
+const panelObserver = new ResizeObserver(resizePopup);
+panels.forEach(panel => panelObserver.observe(panel));
 
 function activateTab(selectedTab) {
   tabs.forEach(tab => {
@@ -11,6 +25,7 @@ function activateTab(selectedTab) {
     tab.tabIndex = selected ? 0 : -1;
     document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
   });
+  resizePopup();
 }
 
 tabs.forEach((tab, index) => {
@@ -51,6 +66,7 @@ async function render() {
   });
 
   await renderOverview();
+  resizePopup();
 }
 
 function formatDuration(milliseconds) {
@@ -80,6 +96,7 @@ async function renderOverview() {
     overviewList.append(item);
   });
   overviewPanel.append(overviewList);
+  resizePopup();
 }
 
 addBtn.onclick = async () => {

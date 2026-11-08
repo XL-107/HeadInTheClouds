@@ -1,54 +1,102 @@
+:root {
+  color-scheme: light;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: #203d3b;
+  background: #e7f2f1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  width: 300px;
+  width: 320px;
+  height: max-content;
   box-sizing: border-box;
   margin: 0;
-  padding: 14px;
-  font-family: Arial, sans-serif;
-  color: #17343a;
-  background-color: #e8f4f2;
+  padding: 18px;
+  border-top: 3px solid #69aaa4;
+  background: linear-gradient(155deg, #f3f8f4 0%, #e5f1f2 100%);
 }
 
 h1 {
-  margin: 0 0 12px;
-  font-size: 19px;
+  margin: 0 0 16px;
+  color: #21443f;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 input {
   width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 8px;
-  padding: 8px;
-  border: 1px solid #9bb9b5;
-  border-radius: 4px;
+  min-height: 37px;
+  margin-bottom: 9px;
+  padding: 8px 10px;
+  border: 1px solid #b8ced0;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .86);
+  color: #203d3b;
   font: inherit;
+  font-size: 13px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+input::placeholder {
+  color: #718985;
+}
+
+input:focus {
+  border-color: #438d86;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 141, 134, .16);
 }
 
 .toolbar {
   display: flex;
-  gap: 6px;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid #cbdcdd;
+  border-radius: 6px;
+  background: rgba(214, 231, 231, .72);
 }
 
 .toolbar button {
   flex: 1;
   min-width: 0;
-  padding: 7px 4px;
+  min-height: 31px;
+  padding: 6px 4px;
   border: 0;
   border-radius: 4px;
-  background: #176b65;
-  color: #fff;
+  background: transparent;
+  color: #526e6b;
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
 }
 
-.toolbar button:hover,
+.toolbar button:hover {
+  background: rgba(255, 255, 255, .58);
+  color: #244a45;
+}
+
 .toolbar button[aria-selected="true"] {
-  background: #10544f;
+  background: #fff;
+  color: #176b65;
+  box-shadow: 0 1px 3px rgba(36, 74, 69, .14);
+}
+
+.toolbar button:focus-visible,
+#addBtn:focus-visible,
+#ruleList button:focus-visible {
+  outline: 2px solid #c18458;
+  outline-offset: 2px;
 }
 
 .tab-panel {
-  min-height: 160px;
-  padding-top: 10px;
+  padding-top: 14px;
 }
 
 .tab-panel[hidden] {
@@ -57,27 +105,36 @@ input {
 
 #addBtn {
   width: 100%;
-  padding: 7px;
+  min-height: 36px;
+  padding: 8px 10px;
   border: 0;
-  border-radius: 4px;
-  background: #176b65;
+  border-radius: 5px;
+  background: #bd1405;
   color: #fff;
   font: inherit;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 2px 5px rgba(40, 120, 113, .16);
+  transition: background-color .16s ease, box-shadow .16s ease, transform .16s ease;
 }
 
 #addBtn:hover {
-  background: #10544f;
+  transform: translateY(-1px);
+  background: #20685f;
+  box-shadow: 0 3px 7px rgba(40, 120, 113, .22);
 }
 
 #ruleList {
-  max-height: 180px;
-  margin: 10px 0 0;
+  max-height: 280px;
+  margin: 9px 0 0;
   padding: 0 4px 0 0;
   overflow-y: auto;
   overflow-x: hidden;
   list-style: none;
   overscroll-behavior-y: contain;
+  scrollbar-color: #a7c7c4 transparent;
+  scrollbar-width: thin;
 }
 
 #ruleList li {
@@ -85,41 +142,58 @@ input {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 7px 0;
-  border-bottom: 1px solid #c6d9d6;
+  padding: 8px 0;
+  border-bottom: 1px solid #d0dfdd;
   overflow-wrap: anywhere;
+  font-size: 12px;
 }
 
 #ruleList button {
   flex: 0 0 auto;
   padding: 4px 7px;
-  border: 1px solid #9bb9b5;
+  border: 1px solid transparent;
   border-radius: 4px;
-  background: #fff;
-  color: #17343a;
+  background: transparent;
+  color: #a64e43;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 
 #ruleList button:hover {
-  background: #d7e9e6;
+  border-color: #ead2cb;
+  background: #f9eeea;
 }
 
 #overviewList {
+  max-height: 280px;
   margin: 0;
   padding: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
   list-style: none;
+  scrollbar-color: #a7c7c4 transparent;
+  scrollbar-width: thin;
 }
 
 #overviewList li {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  padding: 7px 0;
-  border-bottom: 1px solid #c6d9d6;
+  padding: 8px 0;
+  border-bottom: 1px solid #d0dfdd;
+  font-size: 12px;
 }
 
 #overviewList li.live {
   font-weight: bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
 }
