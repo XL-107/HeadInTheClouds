@@ -1,6 +1,7 @@
 const input = document.getElementById("domainInput");
 const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("ruleList");
+const overviewPanel = document.getElementById("overviewPanel");
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 
 function activateTab(selectedTab) {
@@ -48,6 +49,37 @@ async function render() {
     li.append(btn);
     list.append(li);
   });
+
+  await renderOverview();
+}
+
+function formatDuration(milliseconds) {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map(value => String(value).padStart(2, "0")).join(":");
+}
+
+async function renderOverview() {
+  const response = await chrome.runtime.sendMessage({ type: "getOverview" });
+  if (!response?.ok) return;
+
+  overviewPanel.innerHTML = "";
+  const overviewList = document.createElement("ul");
+  overviewList.id = "overviewList";
+  response.sites.forEach(({ site, milliseconds, live }) => {
+    const item = document.createElement("li");
+    item.className = live ? "live" : "";
+    item.textContent = site;
+
+    const time = document.createElement("span");
+    time.textContent = formatDuration(milliseconds);
+    time.setAttribute("aria-label", `${formatDuration(milliseconds)} spent`);
+    item.append(time);
+    overviewList.append(item);
+  });
+  overviewPanel.append(overviewList);
 }
 
 addBtn.onclick = async () => {
@@ -63,7 +95,7 @@ addBtn.onclick = async () => {
   }
 
   input.value = "";
-  render();
+  await render();
 };
 
 // Allow pressing Enter to add
@@ -72,3 +104,8 @@ input.addEventListener("keydown", e => {
 });
 
 render();
+
+setInterval(() => {
+  const overviewTab = document.getElementById("overviewTab");
+  if (overviewTab.getAttribute("aria-selected") === "true") renderOverview();
+}, 1000);

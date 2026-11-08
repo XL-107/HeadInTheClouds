@@ -105,3 +105,21 @@ input {
 #ruleList button:hover {
   background: #d7e9e6;
 }
+
+#overviewList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#overviewList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid #c6d9d6;
+}
+
+#overviewList li.live {
+  font-weight: bold;
+}
