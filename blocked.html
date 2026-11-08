@@ -22,7 +22,8 @@
 			min-height: 100vh;
 			min-height: 100svh;
 			margin: 0;
-			overflow: hidden;
+			overflow-x: hidden;
+			overflow-y: auto;
 			place-items: center;
 			background: linear-gradient(180deg, #d9eff0 0%, #e8f4e9 72%, #f4f0dc 100%);
 		}
@@ -43,10 +44,71 @@
 			object-fit: cover;
 		}
 
-		.message {
+		.page-content {
 			position: relative;
 			z-index: 1;
-			width: min(440px, calc(100% - 40px));
+			width: min(460px, calc(100% - 40px));
+			display: grid;
+			gap: 16px;
+			padding: 24px 0;
+		}
+
+		.leaderboard {
+			padding: 14px 16px 12px;
+			border: 1px solid rgba(35, 66, 61, .18);
+			border-radius: 6px;
+			background: rgba(255, 255, 255, .64);
+			box-shadow: 0 8px 26px rgba(48, 108, 108, .08);
+			backdrop-filter: blur(8px);
+		}
+
+		.leaderboard h2 {
+			margin: 0 0 10px;
+			color: #23423d;
+			font-family: Georgia, "Times New Roman", serif;
+			font-size: 19px;
+			font-weight: 400;
+			text-align: left;
+		}
+
+		.leaderboard table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 12px;
+		}
+
+		.leaderboard th,
+		.leaderboard td {
+			padding: 7px 4px;
+			border-top: 1px solid rgba(35, 66, 61, .12);
+			text-align: left;
+		}
+
+		.leaderboard thead th {
+			color: #58716a;
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: .5px;
+			text-transform: uppercase;
+		}
+
+		.leaderboard th:last-child,
+		.leaderboard td:last-child {
+			text-align: right;
+		}
+
+		.leaderboard tbody tr:first-child th,
+		#totalDistracted {
+			color: #a52c34;
+			font-weight: 700;
+		}
+
+		.leaderboard tbody tr:not(:first-child) {
+			color: #80928d;
+		}
+
+		.message {
+			width: 100%;
 			padding: 48px 24px;
 			text-align: center;
 			animation: appear .7s ease-out both;
@@ -143,10 +205,25 @@
 	<div class="sky" aria-hidden="true">
 		<img class="cloudscape" src="cloudscape.svg" alt="">
 	</div>
-	<main class="message">
-		<div class="mark" aria-hidden="true">HC</div>
-		<h1>Are you sure?</h1>
-		<button id="contBtn" type="button">Continue anyway</button>
+	<main class="page-content">
+		<section class="leaderboard" aria-labelledby="leaderboardTitle">
+			<h2 id="leaderboardTitle">Most Distracted</h2>
+			<table>
+				<thead>
+					<tr><th scope="col">Person</th><th scope="col">Time distracted</th></tr>
+				</thead>
+				<tbody>
+					<tr><th scope="row">You</th><td id="totalDistracted">00:00:00</td></tr>
+					<tr><th scope="row">—</th><td>—</td></tr>
+					<tr><th scope="row">—</th><td>—</td></tr>
+				</tbody>
+			</table>
+		</section>
+		<section class="message">
+			<div class="mark" aria-hidden="true">HC</div>
+			<h1>Are you sure?</h1>
+			<button id="contBtn" type="button">Continue anyway</button>
+		</section>
 	</main>
 	<script src="blocked.js"></script>
 </body>
