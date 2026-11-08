@@ -1,5 +1,6 @@
 const contBtn = document.getElementById("contBtn");
 const totalDistracted = document.getElementById("totalDistracted");
+const limitMessage = document.getElementById("limitMessage");
 
 function formatDuration(milliseconds) {
   const totalSeconds = Math.floor(milliseconds / 1000);
@@ -24,17 +25,53 @@ renderTotalDistracted().catch(() => {
   totalDistracted.textContent = "--:--:--";
 });
 
-contBtn.onclick = async () => {
-  const target = location.hash.slice(1); // everything after the #
-
-  let url;
+function getTargetUrl() {
   try {
-    url = new URL(target);
+    const url = new URL(location.hash.slice(1));
+    return ["http:", "https:"].includes(url.protocol) ? url : null;
   } catch {
+    return null;
+  }
+}
+
+async function updateContinueAvailability(url) {
+  const status = await chrome.runtime.sendMessage({ type: "getLimitStatus", url: url.href });
+  const limitReached = Boolean(status?.ok && status.exceeded);
+  contBtn.hidden = limitReached;
+  limitMessage.hidden = !limitReached;
+
+  if (limitReached) {
+    limitMessage.textContent = `Your distraction limit for ${status.site} has been reached.`;
+  }
+  return limitReached;
+}
+
+async function checkLimitOnLoad() {
+  const target = getTargetUrl();
+  if (!target) {
+    contBtn.hidden = false;
     return;
   }
-  if (!["http:", "https:"].includes(url.protocol)) return;
 
-  await chrome.runtime.sendMessage({ type: "continue", url: url.href });
-  location.href = url.href;
+  try {
+    await updateContinueAvailability(target);
+  } catch {
+    contBtn.hidden = false;
+  }
+}
+
+contBtn.hidden = true;
+checkLimitOnLoad();
+
+contBtn.onclick = async () => {
+  const target = getTargetUrl();
+  if (!target) return;
+
+  try {
+    if (await updateContinueAvailability(target)) return;
+    const response = await chrome.runtime.sendMessage({ type: "continue", url: target.href });
+    if (response?.ok) location.href = target.href;
+  } catch (error) {
+    console.error("Unable to check distraction limit:", error);
+  }
 };

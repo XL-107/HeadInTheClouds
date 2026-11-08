@@ -20,7 +20,12 @@
     <ul id="ruleList"></ul>
   </section>
   <section id="overviewPanel" class="tab-panel" role="tabpanel" aria-labelledby="overviewTab" hidden></section>
-  <section id="otherPanel" class="tab-panel" role="tabpanel" aria-labelledby="otherTab" hidden></section>
+  <section id="otherPanel" class="tab-panel" role="tabpanel" aria-labelledby="otherTab" hidden>
+    <h2 class="panel-title">Distraction limits</h2>
+    <p class="panel-description">Set a maximum time for each blocked site. Leave minutes blank to remove a limit.</p>
+    <p id="limitEmpty" class="empty-state" hidden>Add a site in Permissions to set a limit.</p>
+    <ul id="limitList" aria-label="Per-site distraction limits"></ul>
+  </section>
   <script src="main.js"></script>
 </body>
 

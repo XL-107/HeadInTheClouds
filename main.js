@@ -2,6 +2,8 @@ const input = document.getElementById("domainInput");
 const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("ruleList");
 const overviewPanel = document.getElementById("overviewPanel");
+const limitList = document.getElementById("limitList");
+const limitEmpty = document.getElementById("limitEmpty");
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 const panels = [...document.querySelectorAll(".tab-panel")];
 
@@ -26,6 +28,7 @@ function activateTab(selectedTab) {
     document.getElementById(tab.getAttribute("aria-controls")).hidden = !selected;
   });
   resizePopup();
+  if (selectedTab.id === "otherTab") renderLimits();
 }
 
 tabs.forEach((tab, index) => {
@@ -66,6 +69,7 @@ async function render() {
   });
 
   await renderOverview();
+  await renderLimits();
   resizePopup();
 }
 
@@ -96,6 +100,59 @@ async function renderOverview() {
     overviewList.append(item);
   });
   overviewPanel.append(overviewList);
+  resizePopup();
+}
+
+async function renderLimits() {
+  const { blacklist = [], siteLimits = {} } = await chrome.storage.local.get(["blacklist", "siteLimits"]);
+  limitList.innerHTML = "";
+  limitEmpty.hidden = blacklist.length > 0;
+
+  blacklist.forEach(site => {
+    const item = document.createElement("li");
+    item.className = "limit-row";
+
+    const name = document.createElement("span");
+    name.className = "limit-site";
+    name.textContent = site;
+
+    const minutesInput = document.createElement("input");
+    minutesInput.type = "number";
+    minutesInput.min = "1";
+    minutesInput.step = "1";
+    minutesInput.placeholder = "Minutes";
+    minutesInput.setAttribute("aria-label", `Allowed distraction minutes for ${site}`);
+    const limitMilliseconds = Number(siteLimits[site]) || 0;
+    minutesInput.value = limitMilliseconds ? String(Math.ceil(limitMilliseconds / 60000)) : "";
+
+    const saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.textContent = "Save";
+    saveButton.setAttribute("aria-label", `Save limit for ${site}`);
+    saveButton.onclick = async () => {
+      const { siteLimits: currentLimits = {} } = await chrome.storage.local.get("siteLimits");
+      const updatedLimits = { ...currentLimits };
+      const minutes = minutesInput.value.trim();
+
+      if (!minutes) {
+        delete updatedLimits[site];
+      } else {
+        const parsedMinutes = Number(minutes);
+        if (!Number.isFinite(parsedMinutes) || parsedMinutes < 1) {
+          minutesInput.reportValidity();
+          return;
+        }
+        updatedLimits[site] = parsedMinutes * 60000;
+      }
+
+      await chrome.storage.local.set({ siteLimits: updatedLimits });
+      await renderLimits();
+    };
+
+    item.append(name, minutesInput, saveButton);
+    limitList.append(item);
+  });
+
   resizePopup();
 }
 

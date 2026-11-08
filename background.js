@@ -1,6 +1,7 @@
 const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const trackingKey = "siteTimes";
 const sessionsKey = "timerSessions";
+const limitAlarmPrefix = "site-limit:";
 let operationQueue = Promise.resolve();
 
 function enqueue(operation) {
@@ -30,10 +31,79 @@ async function getFocusedTab() {
   return tabs[0];
 }
 
+async function enforceSiteLimit(site, blacklist) {
+  const { [trackingKey]: siteTimes = {}, [sessionsKey]: sessions = {} } =
+    await chrome.storage.local.get([trackingKey, sessionsKey]);
+  const now = Date.now();
+  const siteSessions = Object.entries(sessions).filter(([, session]) => session.site === site);
+  if (!siteSessions.length) return;
+
+  for (const [tabId, session] of siteSessions) {
+    if (session.startedAt !== null) {
+      siteTimes[site] = (siteTimes[site] || 0) + Math.max(0, now - session.startedAt);
+    }
+    delete sessions[tabId];
+  }
+
+  await chrome.storage.local.set({ [trackingKey]: siteTimes, [sessionsKey]: sessions });
+  await chrome.alarms.clear(`${limitAlarmPrefix}${site}`);
+  await chrome.declarativeNetRequest.updateSessionRules({
+    removeRuleIds: siteSessions.map(([tabId]) => Number(tabId) + 100000)
+  });
+
+  for (const [tabId] of siteSessions) {
+    try {
+      const tab = await chrome.tabs.get(Number(tabId));
+      if (siteForHost(hostForTab(tab), blacklist) !== site) continue;
+      await chrome.tabs.update(Number(tabId), {
+        url: `${chrome.runtime.getURL("blocked.html")}#${tab.url}`
+      });
+    } catch (error) {
+      console.error("Unable to return a limited tab to the block page:", error);
+    }
+  }
+}
+
+async function syncLimitAlarms(siteTimes, sessions, siteLimits, blacklist) {
+  const existingAlarms = await chrome.alarms.getAll();
+  await Promise.all(
+    existingAlarms
+      .filter(alarm => alarm.name.startsWith(limitAlarmPrefix))
+      .map(alarm => chrome.alarms.clear(alarm.name))
+  );
+
+  const activeSessions = Object.values(sessions)
+    .filter(session => session.startedAt !== null);
+  const activeSites = new Set(activeSessions.map(session => session.site));
+  const now = Date.now();
+
+  for (const site of activeSites) {
+    const limitMilliseconds = Math.max(0, Number(siteLimits[site]) || 0);
+    if (!limitMilliseconds) continue;
+
+    const activeMilliseconds = activeSessions
+      .filter(session => session.site === site)
+      .reduce((total, session) => total + Math.max(0, now - session.startedAt), 0);
+    const usedMilliseconds = Math.max(0, Number(siteTimes[site]) || 0) + activeMilliseconds;
+    if (usedMilliseconds >= limitMilliseconds) {
+      await enforceSiteLimit(site, blacklist);
+      continue;
+    }
+
+    chrome.alarms.create(`${limitAlarmPrefix}${site}`, {
+      when: now + Math.max(30000, limitMilliseconds - usedMilliseconds)
+    });
+  }
+}
+
 async function reconcileTimers() {
   const now = Date.now();
-  const { blacklist = [], [trackingKey]: siteTimes = {}, [sessionsKey]: sessions = {} } =
-    await chrome.storage.local.get(["blacklist", trackingKey, sessionsKey]);
+  const {
+    blacklist = [],
+    [trackingKey]: siteTimes = {},
+    [sessionsKey]: sessions = {},
+    siteLimits = {}
+  } = await chrome.storage.local.get(["blacklist", trackingKey, sessionsKey, "siteLimits"]);
   const focusedTab = await getFocusedTab();
   let changed = false;
 
@@ -54,6 +124,7 @@ async function reconcileTimers() {
   if (changed) {
     await chrome.storage.local.set({ [trackingKey]: siteTimes, [sessionsKey]: sessions });
   }
+  await syncLimitAlarms(siteTimes, sessions, siteLimits, blacklist);
   return { siteTimes, sessions };
 }
 
@@ -104,6 +175,31 @@ async function getOverview() {
 
     sites.sort((a, b) => Number(b.live) - Number(a.live) || b.milliseconds - a.milliseconds);
     return sites;
+  });
+}
+
+async function getLimitStatus(host) {
+  return enqueue(async () => {
+    const {
+      blacklist = [],
+      [trackingKey]: siteTimes = {},
+      [sessionsKey]: sessions = {},
+      siteLimits = {}
+    } = await chrome.storage.local.get(["blacklist", trackingKey, sessionsKey, "siteLimits"]);
+    const site = siteForHost(host, blacklist);
+    const now = Date.now();
+    const activeMilliseconds = Object.values(sessions)
+      .filter(session => session.site === site && session.startedAt !== null)
+      .reduce((total, session) => total + Math.max(0, now - session.startedAt), 0);
+    const usedMilliseconds = Math.max(0, Number(siteTimes[site]) || 0) + activeMilliseconds;
+    const limitMilliseconds = Math.max(0, Number(siteLimits[site]) || 0);
+
+    return {
+      site,
+      usedMilliseconds,
+      limitMilliseconds,
+      exceeded: limitMilliseconds > 0 && usedMilliseconds >= limitMilliseconds
+    };
   });
 }
 
@@ -174,6 +270,56 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (!alarm.name.startsWith(limitAlarmPrefix)) return;
+  enqueue(async () => {
+    await reconcileTimers();
+    const {
+      blacklist = [],
+      [trackingKey]: siteTimes = {},
+      [sessionsKey]: sessions = {},
+      siteLimits = {}
+    } = await chrome.storage.local.get(["blacklist", trackingKey, sessionsKey, "siteLimits"]);
+    const site = alarm.name.slice(limitAlarmPrefix.length);
+    const now = Date.now();
+    const activeMilliseconds = Object.values(sessions)
+      .filter(session => session.site === site && session.startedAt !== null)
+      .reduce((total, session) => total + Math.max(0, now - session.startedAt), 0);
+    const usedMilliseconds = Math.max(0, Number(siteTimes[site]) || 0) + activeMilliseconds;
+    const limitMilliseconds = Math.max(0, Number(siteLimits[site]) || 0);
+
+    if (limitMilliseconds && usedMilliseconds >= limitMilliseconds) {
+      await enforceSiteLimit(site, blacklist);
+    } else {
+      await syncLimitAlarms(siteTimes, sessions, siteLimits, blacklist);
+    }
+  }).catch(console.error);
+});
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type !== "getLimitStatus") return;
+
+  let url;
+  try {
+    url = new URL(msg.url);
+  } catch {
+    sendResponse({ ok: false });
+    return;
+  }
+  if (!["http:", "https:"].includes(url.protocol)) {
+    sendResponse({ ok: false });
+    return;
+  }
+
+  getLimitStatus(url.hostname)
+    .then(status => sendResponse({ ok: true, ...status }))
+    .catch(error => {
+      console.error("Unable to load distraction limit:", error);
+      sendResponse({ ok: false });
+    });
+  return true;
+});
+
 chrome.tabs.onActivated.addListener(() => enqueue(reconcileTimers).catch(console.error));
 chrome.windows.onFocusChanged.addListener(windowId => {
   // WINDOW_ID_NONE fires when focus moves to things outside any browser
@@ -187,8 +333,8 @@ chrome.tabs.onRemoved.addListener(tabId => stopTimer(tabId).catch(console.error)
 
 // Re-sync whenever the list changes, and on install/startup
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && changes.blacklist) {
-    syncRules();
+  if (area === "local" && (changes.blacklist || changes.siteLimits)) {
+    if (changes.blacklist) syncRules();
     enqueue(reconcileTimers).catch(console.error);
   }
 });

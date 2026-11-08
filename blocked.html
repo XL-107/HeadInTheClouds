@@ -179,6 +179,19 @@
 			outline-offset: 3px;
 		}
 
+		#contBtn[hidden],
+		#limitMessage[hidden] {
+			display: none;
+		}
+
+		.limit-message {
+			margin: 18px 0 0;
+			color: #a52c34;
+			font-size: 14px;
+			font-weight: 600;
+			line-height: 1.5;
+		}
+
 		@keyframes appear {
 			from { opacity: 0; transform: translateY(8px); }
 			to { opacity: 1; transform: translateY(0); }
@@ -223,6 +236,7 @@
 			<div class="mark" aria-hidden="true">HC</div>
 			<h1>Are you sure?</h1>
 			<button id="contBtn" type="button">Continue anyway</button>
+			<p id="limitMessage" class="limit-message" hidden></p>
 		</section>
 	</main>
 	<script src="blocked.js"></script>
