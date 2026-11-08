@@ -67,7 +67,7 @@ input:focus {
   min-height: 31px;
   padding: 6px 4px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 999px;
   background: transparent;
   color: #526e6b;
   font: inherit;
@@ -108,7 +108,7 @@ input:focus {
   min-height: 36px;
   padding: 8px 10px;
   border: 0;
-  border-radius: 5px;
+  border-radius: 999px;
   background: #bd1405;
   color: #fff;
   font: inherit;
@@ -152,7 +152,7 @@ input:focus {
   flex: 0 0 auto;
   padding: 4px 7px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 999px;
   background: transparent;
   color: #a64e43;
   font: inherit;
@@ -244,10 +244,10 @@ input:focus {
   min-height: 32px;
   padding: 5px 4px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 999px;
   background: #287871;
   color: #fff;
-  font: inherit;
+  font: Jetbrains Mono, monospace;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;

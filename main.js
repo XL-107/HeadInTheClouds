@@ -86,6 +86,10 @@ async function renderOverview() {
   if (!response?.ok) return;
 
   overviewPanel.innerHTML = "";
+  const heading = document.createElement("h2");
+  heading.className = "panel-title";
+  heading.textContent = "Time Distracted";
+
   const overviewList = document.createElement("ul");
   overviewList.id = "overviewList";
   response.sites.forEach(({ site, milliseconds, live }) => {
@@ -99,7 +103,7 @@ async function renderOverview() {
     item.append(time);
     overviewList.append(item);
   });
-  overviewPanel.append(overviewList);
+  overviewPanel.append(heading, overviewList);
   resizePopup();
 }
 
